@@ -129,7 +129,8 @@ PS C:\phab\console> stack --resolver nightly-2018-04-29 exec -- console
 ```
 
 As it turns out this issue has been known for millenia and there is no explanation for it. From one
-of blogposts online on the subject (in that case it was from Perl):
+of [blogposts online](https://www.windowsperl.com/2014/02/20/dealing-with-code-pages/) on the
+subject (in that case it was with Perl):
 
 > I suspect this is a bug in the Window’s console handling of UTF-8, and that CP-65001 is part of
 > the issue. It’s not just Command Prompt that has this issue; WinBash shows the same
@@ -137,6 +138,10 @@ of blogposts online on the subject (in that case it was from Perl):
 > the actual issue, which I think is very deep in the architecture. Part of this is the console’s
 > inability to use a proper font.
 
+Other places that mention this issue and the upcoming solution:
+
+* https://stackoverflow.com/questions/33308276/issues-with-windows-command-line-using-utf-8-code-page
+* https://stackoverflow.com/questions/1259084/what-encoding-code-page-is-cmd-exe-using
 
 Luckily for us this behavior is only present when printing to console, but not when it is being
 piped:
@@ -154,3 +159,29 @@ to:
   console.
 * If above fails, it means the handle wasn't a console in the first place so we can safely write it
   in our usual way while setting the encoding on the handle to utf8.
+
+
+## Implemented solution
+
+So, by using Windows API now we can consistently print to console without worrying about the code
+page.
+
+
+* In Powershell:
+
+```
+PS C:\phab\windows-console> chcp
+Active code page: 437
+PS C:\phab\windows-console> stack exec -- console
+Алексей Кулешевич
+```
+
+* In `cmd`:
+
+```
+C:\phab\windows-console> chcp
+Active code page: 437
+
+C:\phab\windows-console> stack exec -- console
+Алексей Кулешевич
+```

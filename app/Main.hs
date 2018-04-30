@@ -13,7 +13,6 @@ import Foreign.Storable
 
 import System.Win32
 import System.Win32.Console
-import System.Win32.File
 import System.Win32.Types
 import Graphics.Win32.Misc
 
@@ -52,7 +51,7 @@ foreign import WINDOWS_CCONV unsafe "windows.h WriteConsoleW"
 --       {-TODO: get what was written-}
 --       print eCode
 
-
+-- | Reset all handles' encoding to UTF-8 and set code page to 65001
 withUTF8Encoding :: IO c -> IO c
 withUTF8Encoding action =
   bracket
@@ -87,7 +86,6 @@ writeConsole hConsoleOutput lpBuffer nNumberOfCharsToWrite lpNumberOfCharsWritte
           n <- peek lpNumberOfCharsWritten
           if (n /= 0 && n < toWrite)
             then do
-              flushFileBuffers hConsoleOutput
               doWrite
                 (plusPtr buf (fromIntegral n * sizeOf (undefined :: CWchar)))
                 (toWrite - n)
@@ -99,9 +97,9 @@ withUtf8Handle hdl action =
   bracket
     (do oldEnc <- hGetEncoding hdl
         hSetEncoding hdl utf8
-        return $ fromMaybe localeEncoding oldEnc)
-    (hSetEncoding hdl)
-    (const (action hdl))
+        return $ (hdl, fromMaybe localeEncoding oldEnc))
+    (hSetEncoding hdl . snd)
+    (action . fst)
 
 hwPutStr :: Handle -> String -> IO ()
 hwPutStr hdl str = do
@@ -118,7 +116,7 @@ hwPutStr hdl str = do
 
 
 main :: IO ()
-main = do
+main = withUTF8Encoding $ do
   hwPutStr stdout "Алексей Кулешевич\n"
   -- setConsoleOutputCP oldCP
   -- withUTF8Encoding $ do
