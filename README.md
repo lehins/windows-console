@@ -185,3 +185,43 @@ Active code page: 437
 C:\phab\windows-console> stack exec -- console
 Алексей Кулешевич
 ```
+
+
+## Problem
+
+Consider this program:
+
+```
+main :: IO ()
+main = do
+  hSetEncoding stdout utf8
+  setConsoleOutputCP 65001
+  putStrLn "Алексей Кулешевич"
+```
+
+Execution order permenatently chanegs behavior of Powershell Session:
+
+```
+PS C:\phab\windows-console> stack exec -- console
+Алексей Кулешевич
+лешевич
+�ич
+
+PS C:\phab\windows-console> stack exec -- console | echo
+Алексей Кулешевич
+```
+
+In above example piping will work fine from now on, while below will never work, no matter what we
+do with code page afterwards:
+
+```
+PS C:\phab\windows-console> stack exec -- console | echo
+╨É╨╗╨╡╨║╤ü╨╡╨╣ ╨Ü╤â╨╗╨╡╤ê╨╡╨▓╨╕╤ç
+PS C:\phab\windows-console> stack exec -- console
+Алексей Кулешевич
+лешевич
+�ич
+
+PS C:\phab\windows-console> stack exec -- console | echo
+╨É╨╗╨╡╨║╤ü╨╡╨╣ ╨Ü╤â╨╗╨╡╤ê╨╡╨▓╨╕╤ç
+```

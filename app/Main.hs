@@ -93,13 +93,13 @@ writeConsole hConsoleOutput lpBuffer nNumberOfCharsToWrite lpNumberOfCharsWritte
         else return eCode
 
 withUtf8Handle :: Handle -> (Handle -> IO a) -> IO a
-withUtf8Handle hdl action =
-  bracket
-    (do oldEnc <- hGetEncoding hdl
-        hSetEncoding hdl utf8
-        return $ (hdl, fromMaybe localeEncoding oldEnc))
-    (hSetEncoding hdl . snd)
-    (action . fst)
+withUtf8Handle hdl action = action hdl
+  -- bracket
+  --   (do oldEnc <- hGetEncoding hdl
+  --       hSetEncoding hdl utf8
+  --       return $ (hdl, fromMaybe localeEncoding oldEnc))
+  --   (hSetEncoding hdl . snd)
+  --   (action . fst)
 
 hwPutStr :: Handle -> String -> IO ()
 hwPutStr hdl str = do
@@ -116,25 +116,8 @@ hwPutStr hdl str = do
 
 
 main :: IO ()
-main = withUTF8Encoding $ do
+main = do
+  hSetEncoding stdout utf8
+  setConsoleOutputCP 65001
+  IO.putStrLn "Алексей Кулешевич"
   hwPutStr stdout "Алексей Кулешевич\n"
-  -- setConsoleOutputCP oldCP
-  -- withUTF8Encoding $ do
-  -- wPutStr stdout "=лёха=\n"
-  -- oldCP <- getConsoleCP
-  -- setConsoleCP 65001
-  -- setConsoleOutputCP 65001
-  -- hSetEncoding stdin utf8
-  -- hSetEncoding stdout utf8
-  -- hSetEncoding stderr utf8
-  -- -- wStdPutStr "-foo-"
-  -- -- wStdPutStr "~bar\n~"
-  -- wStdPutStr "=ха=\n"
-  -- let a = S.pack [0xD0, 0x90, 0xD0, 0xBB, 0xD0, 0xB5, 0xD0, 0xBA, 0xD1, 0x81, 0xD0, 0xB5, 0xD0, 0xB9]
-  -- -- wStdPutStr8 a
-  -- Prelude.putStrLn "Кристина Кулешевич"
-  -- Prelude.putStrLn "Christina Kuleshevich"
-  -- S8.putStrLn a
-  -- wStdPutStr8 a
-
-  -- setConsoleOutputCP oldCP
